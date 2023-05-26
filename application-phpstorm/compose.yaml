@@ -1,13 +1,12 @@
 version: "3"
-name: "test"
 
 services:
   mysql:
     image: mysql/mysql-server:8.0
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - type: bind
-        source: ./docker/volumes/mysql
+        source: ./docker/volume/mysql
         target: /var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -15,14 +14,13 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
-      - backend
+      - phpstorm-backend
 
   php:
-    image: awesome/php
-    build: ./docker/php
-    restart: on-failure
-    depends_on:
-      - mysql
+#    image: awesome/php
+#    build: ./docker/image/php
+    image: phpstorm/php-apache:8.2-xdebug3.2
+    restart: unless-stopped
     environment:
       - MYSQL_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}?serverVersion=8.0
     links:
@@ -30,12 +28,12 @@ services:
     volumes:
       - ".:/var/www"
     networks:
-      - backend
-      - frontend
+      - phpstorm-backend
+      - phpstorm-frontend
 
   nginx:
     image: nginx:latest
-    restart: on-failure
+    restart: unless-stopped
     depends_on:
       - php
       - mysql
@@ -47,12 +45,12 @@ services:
     ports:
       - "8888:80"
     networks:
-      - backend
-      - frontend
+      - phpstorm-backend
+      - phpstorm-frontend
 
 #volumes:
 #  ${MYSQL_NAME}-volume:/var/lib/mysql:
 
 networks:
-  backend:
-  frontend:
+  phpstorm-backend:
+  phpstorm-frontend:

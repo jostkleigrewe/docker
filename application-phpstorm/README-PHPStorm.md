@@ -1,6 +1,10 @@
 # docker
 All around Docker 
 
+- nginx
+- MySQL 8
+- PHP 8.2
+
 
 
 # Docker Compose

@@ -1,6 +1,6 @@
 version: "3"
-name: "test"
-
+name: "phpstorm"
+  
 services:
   mysql:
     image: mysql/mysql-server:8.0

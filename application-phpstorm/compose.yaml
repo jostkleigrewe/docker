@@ -1,56 +1,68 @@
-version: "3"
+version: "3.8"
 
 services:
+
   mysql:
+    container_name: mysql
     image: mysql/mysql-server:8.0
     restart: unless-stopped
     volumes:
-      - type: bind
-        source: ./docker/volume/mysql
+      - type: volume
+        source: mysql-phpstorm
         target: /var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - ${DOCKER_MYSQL_PORT}:3306
     networks:
-      - phpstorm-backend
+      - phpstorm-network
 
-  php:
-#    image: awesome/php
-#    build: ./docker/image/php
-    image: phpstorm/php-apache:8.2-xdebug3.2
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:latest
     restart: unless-stopped
     environment:
-      - MYSQL_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}?serverVersion=8.0
+      - PMA_USER=${MYSQL_USER}
+      - PMA_PASSWORD=${MYSQL_PASSWORD}
+      - PMA_HOST=mysql
+      - PMA_ARBITRARY=0
     links:
       - mysql
-    volumes:
-      - ".:/var/www"
+    ports:
+      - ${DOCKER_PMA_PORT}:80
     networks:
-      - phpstorm-backend
-      - phpstorm-frontend
+      - phpstorm-network
+
+  php-fpm:
+    image: awesome/php
+    build: ./docker/image/php
+    restart: unless-stopped
+    volumes:
+      - "./:/code"
+    networks:
+      - phpstorm-network
 
   nginx:
-    image: nginx:latest
+    image: awesome/nginx
+    build: ./docker/image/nginx
     restart: unless-stopped
     depends_on:
-      - php
+      - php-fpm
       - mysql
     volumes:
-      - ".:/var/www"
-      - "./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf"
-    expose:
-      - 80
+      - "./:/code"
     ports:
-      - "8888:80"
+      - ${DOCKER_NGINX_PORT}:80
+    environment:
+      - DOCKER_NGINX_HOST=${DOCKER_NGINX_HOST}
     networks:
-      - phpstorm-backend
-      - phpstorm-frontend
-
-#volumes:
-#  ${MYSQL_NAME}-volume:/var/lib/mysql:
+      - phpstorm-network
 
 networks:
-  phpstorm-backend:
-  phpstorm-frontend:
+  phpstorm-network:
+
+volumes:
+  mysql-phpstorm:

@@ -13,3 +13,7 @@ docker compose --project-name "docker-repo-test" --env-file .env --file compose.
 
 docker compose -f docker-compose.yml -f docker-compose.admin.yml run backup_db
 
+docker compose up -d --build
+
+docker compose down
+

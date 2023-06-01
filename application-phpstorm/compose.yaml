@@ -2,6 +2,26 @@ version: "3.8"
 
 services:
 
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: rabbitmq-phpstorm
+        target: /var/lib/rabbitmq
+    ports:
+      - ${DOCKER_RABBITMQ_PORT}:15672
+    networks:
+      - phpstorm-network
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: unless-stopped
+    networks:
+      - phpstorm-network
+
   mysql:
     container_name: mysql
     image: mysql/mysql-server:8.0
@@ -66,3 +86,5 @@ networks:
 
 volumes:
   mysql-phpstorm:
+  redis-phpstorm:
+  rabbitmq-phpstorm:

@@ -57,7 +57,7 @@ services:
       - phpstorm-network
 
   php-fpm:
-    image: awesome/php
+    container_name: php
     build:
       context: ./docker/image/php-fpm-8.2
       args:
@@ -70,6 +70,7 @@ services:
       - phpstorm-network
 
   nginx:
+    container_name: nginx
     image: awesome/nginx
     build: ./docker/image/nginx
     restart: unless-stopped

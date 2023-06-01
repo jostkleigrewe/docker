@@ -17,3 +17,8 @@ docker compose up -d --build
 
 docker compose down
 
+### Symfony App benutzen
+docker compose exec php-fpm symfony --version
+
+### PHP benutzen
+docker compose exec php-fpm php -v

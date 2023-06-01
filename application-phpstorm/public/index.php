@@ -1,2 +1,6 @@
 <?php
-phpinfo();
+//xdebug_info();
+//phpinfo();
+$a = 12345;
+
+dump([$a]);

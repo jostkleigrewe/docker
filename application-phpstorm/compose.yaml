@@ -58,7 +58,11 @@ services:
 
   php-fpm:
     image: awesome/php
-    build: ./docker/image/php
+    build:
+      context: ./docker/image/php-fpm-8.2
+      args:
+        - COMPOSER_VERSION=${DOCKER_COMPOSER_VERSION?}
+
     restart: unless-stopped
     volumes:
       - "./:/code"

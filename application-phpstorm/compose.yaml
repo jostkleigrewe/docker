@@ -2,80 +2,68 @@ version: "3.8"
 
 services:
 
+  # rabbitMQ
   rabbitmq:
-    container_name: rabbitmq
     image: rabbitmq:3-management
     restart: unless-stopped
     volumes:
       - type: volume
-        source: rabbitmq-phpstorm
+        source: rabbitmq-volume
         target: /var/lib/rabbitmq
     ports:
       - ${DOCKER_RABBITMQ_PORT}:15672
-    networks:
-      - phpstorm-network
 
   redis:
-    container_name: redis
     image: redis:latest
     restart: unless-stopped
-    networks:
-      - phpstorm-network
 
   mysql:
-    container_name: mysql
-    image: mysql/mysql-server:8.0
+    build:
+      context: ./docker/image/mysql-${DOCKER_MYSQL_VERSION}
     restart: unless-stopped
     volumes:
       - type: volume
-        source: mysql-phpstorm
+        source: mysql-volume
         target: /var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_HOST='%'
     ports:
       - ${DOCKER_MYSQL_PORT}:3306
-    networks:
-      - phpstorm-network
 
   phpmyadmin:
-    container_name: phpmyadmin
     image: phpmyadmin:latest
     restart: unless-stopped
     environment:
-      - PMA_USER=${MYSQL_USER}
-      - PMA_PASSWORD=${MYSQL_PASSWORD}
+      - PMA_USER=root
+      - PMA_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#      - PMA_USER=${MYSQL_USER}
+#      - PMA_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - PMA_HOST=mysql
       - PMA_ARBITRARY=0
     links:
       - mysql
     ports:
       - ${DOCKER_PMA_PORT}:80
-    networks:
-      - phpstorm-network
 
-  php-fpm:
-    container_name: php
+  php:
     build:
-      context: ./docker/image/php-fpm-8.2
+      context: ./docker/image/php-fpm-${DOCKER_PHP_VERSION}
       args:
         - COMPOSER_VERSION=${DOCKER_COMPOSER_VERSION?}
-
     restart: unless-stopped
     volumes:
       - "./:/code"
-    networks:
-      - phpstorm-network
 
   nginx:
-    container_name: nginx
-    image: awesome/nginx
     build: ./docker/image/nginx
     restart: unless-stopped
     depends_on:
-      - php-fpm
+      - php
       - mysql
     volumes:
       - "./:/code"
@@ -83,13 +71,18 @@ services:
       - ${DOCKER_NGINX_PORT}:80
     environment:
       - DOCKER_NGINX_HOST=${DOCKER_NGINX_HOST}
-    networks:
-      - phpstorm-network
+#
+#  mailer:
+#    image: schickling/mailcatcher
+#    ports: ["1025", "1080"]
 
-networks:
-  phpstorm-network:
+  node:
+    image: node:lts
+    restart: no
 
 volumes:
-  mysql-phpstorm:
+  mysql-volume:
+    name: ${DOCKER_MYSQL_VOLUME}
   redis-phpstorm:
-  rabbitmq-phpstorm:
+  rabbitmq-volume:
+    name: ${DOCKER_RABBITMQ_VOLUME}

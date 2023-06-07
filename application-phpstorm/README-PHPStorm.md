@@ -26,3 +26,10 @@ docker compose exec php bin/console
 
 ### PHP benutzen
 docker compose exec php composer -v
+
+
+### NodeJS benutzen
+docker compose run --rm -it node -v
+
+docker compose run --rm -it  node npm -v
+
